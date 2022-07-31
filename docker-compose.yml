@@ -1,0 +1,78 @@
+version: "3"
+
+networks: 
+  host:
+    driver: bridge
+services:
+  nginx:
+    dns:
+      - 8.8.8.8
+      - 4.4.4.4
+    build:
+      context: ./docker/images
+      dockerfile: nginx.Dockerfile
+    working_dir: /var/www/html
+    container_name: webserver
+
+    ports:
+      - "80:80"
+    volumes:
+      - ./htdocs:/var/www/html
+      - ./docker/logs/nginx_log:/var/log/nginx
+      - ./docker/config/nginx/htdocs.conf:/etc/nginx/conf.d/htdocs.conf
+
+
+    networks: 
+      - host  
+    restart: unless-stopped
+    depends_on:
+      - php
+      - mysql
+
+  php:
+    build:
+      context: ./docker/images
+      dockerfile: php.Dockerfile
+    container_name: app
+    restart: unless-stopped
+    volumes:
+      - ./htdocs:/var/www/html
+      - ./docker/logs/php-fpm/php-fpm.log:/var/log/php-fpm.log
+      - ./docker/config/php-fpm/custom.ini:/usr/local/etc/php/conf.d/custom.ini
+    networks: 
+      - host
+
+  mysql:
+    build:
+      context: ./docker/images
+      dockerfile: mysql.Dockerfile
+    container_name: database
+    restart: unless-stopped
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./docker/data/mysql:/var/lib/mysql
+      - ./docker/logs/mysql/mysql.log:/var/log/mysql.log
+    environment:
+      MYSQL_ROOT_USER: 'root'
+      MYSQL_ROOT_PASSWORD: 'pwd123'
+      MYSQL_ROOT_HOST: '%'
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    networks: 
+      - host
+
+  phpmyadmin:
+    build: 
+      context: ./docker/images
+      dockerfile: phpmyadmin.Dockerfile
+    container_name: phpmyadmin
+    restart: unless-stopped
+    environment: 
+      PMA_HOST: mysql    
+    depends_on:
+      - mysql
+    ports: 
+       - "8080:80"
+    networks: 
+      - host
+
