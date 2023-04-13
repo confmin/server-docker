@@ -1,0 +1,15 @@
+{
+    "Global": {
+        "Chroot": {
+            "Directory": "%h",
+            "StartPath": "root"
+        },
+        "Directories": ["root"]
+    },
+    "Users": [
+        {
+            "Username": "root",
+            "Password": "pwd123"
+        }
+    ]
+}

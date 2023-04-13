@@ -75,4 +75,26 @@ services:
        - "8080:80"
     networks: 
       - host
-
+  sftp:
+    build:
+      context: ./docker/images
+      dockerfile: sftp.Dockerfile
+    container_name: sftp
+    restart: unless-stopped
+    volumes:
+      - ./docker/config/sftp/config.json:/app/config/sftp.json:ro
+    ports:
+      - "22:22"
+    networks:
+      - host
+  redis:
+    build:
+      context: ./docker/images
+      dockerfile: redis.Dockerfile
+    restart: always
+    ports:
+      - "6379:6379"
+    command: redis-server --save 20 1 --loglevel warning --requirepass pwd123
+    container_name: redis
+    networks:
+      - host
